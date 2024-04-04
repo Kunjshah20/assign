@@ -1,11 +1,8 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-// import Image from 'next/image'
-import show from '/eye.png'
-import hide from '/hide.png'
+"use client";
+import React, { useEffect, useState, useRef } from 'react'
 import { HiEye, HiEyeOff } from 'react-icons/hi'
 
-function page1() {
+function Page1() {
   const [step, setStep] = useState(1)
   const [censorPswd, setCensorPswd] = useState(true)
   const [censorPswdCheck, setCensorPswdCheck] = useState(true)
@@ -17,16 +14,21 @@ function page1() {
     RePassword: '',
     otp: '',
   })
+  const [alertMessage, setAlertMessage] = useState('')
+
+  // Create refs for password visibility toggles
+  const censorRef = useRef(null)
+  const censorCheckRef = useRef(null)
+  const formRef = useRef(null)
 
   useEffect(() => {
-    if (step != 3) return
+    if (step !== 3) return
 
     const handleClick = () => {
       setCensorPswd(!censorPswd)
     }
 
-    const element = document.getElementById('censor')
-
+    const element = censorRef.current
     if (element) {
       element.addEventListener('click', handleClick)
     }
@@ -39,14 +41,13 @@ function page1() {
   }, [censorPswd, step])
 
   useEffect(() => {
-    if (step != 3) return
+    if (step !== 3) return
 
     const handleClick = () => {
       setCensorPswdCheck(!censorPswdCheck)
     }
 
-    const element = document.getElementById('censorcheck')
-
+    const element = censorCheckRef.current
     if (element) {
       element.addEventListener('click', handleClick)
     }
@@ -66,89 +67,74 @@ function page1() {
     })
   }
 
-  function alert(alert, field) {
-    const formElement = document.getElementById(field)
-
-    alertClear()
-
-    const alertDiv = document.createElement('div')
-    alertDiv.innerHTML = `<div class="text-light-1 mt-[1svh] text-[0.65rem] md:text-[1.0rem]" id="alert">${alert}</div>`
-    formElement.appendChild(alertDiv)
-  }
-
-  function alertClear() {
-    const existingAlert = document.getElementById('alert')
-
-    if (existingAlert) {
-      existingAlert.remove()
-    }
-  }
-
-  function check(e, stage, action) {
+  const check = (e, stage, action) => {
     e.preventDefault()
-    let formData = null
-    if (!action && stage != 'User') {
+    // let formData = null
+    if (!action && stage !== 'User') {
       setStep(step - 1)
-    } else {
-      formData = new FormData(e.target)
+      setAlertMessage('')
     }
 
-    if (action && stage == 'User') {
-      let Email = formData.get('Email')
-      let Username = formData.get('Username')
+    // Place your validation logic here
+    // For example, for the 'User' stage:
+    if (action && stage === 'User') {
+      let Email = formdata?.Email
+      let Username = formdata?.Username
 
-      if (false) {
-        alert('Invalid Login', 'usernamecontainer')
-      } else {
-        alertClear()
+      // Example validation check
+      if (Email && Username) {
+        setAlertMessage('')
         setStep(step + 1)
-        document.getElementById(step).reset()
-        setEmailOTP('010101')
+        // document.getElementById(step).reset()
+        formRef.current.reset()
+        setEmailOTP('010101') // Example OTP
+      } else {
+        setAlertMessage('Invalid Login')
       }
-    }
-
-    if (action && stage == 'OTP') {
-      let OTP = formData.get('otp')
+    } else if (action && stage == 'OTP') {
+      let OTP = formdata?.otp
 
       if (OTP != emailOTP) {
-        alert('Incorrect OTP', 'otpcontainer')
+        setAlertMessage('Incorrect OTP')
       } else {
-        alertClear()
+        setAlertMessage('')
         setStep(step + 1)
-        document.getElementById(step).reset()
+        formRef.current.reset()
       }
-    }
-
-    if (action && stage == 'Password') {
-      let Password = formData.get('Password')
-      let Check = formData.get('RePassword')
+    } else if (action && stage == 'Password') {
+      let Password = formdata?.Password
+      let Check = formdata?.RePassword
 
       if (Password.length < 8 || Password.length > 20) {
-        alert('The Password Should Be 8-20 Characters', 'passwordcontainer')
+        setAlertMessage(
+          'The Password Should Be 8-20 Characters',
+          'passwordcontainer',
+        )
       } else if (!Password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/)) {
-        alert(
+        setAlertMessage(
           'Password should contain at least one special character',
           'passwordcontainer',
         )
       } else if (!Password.match(/[A-Z]+/)) {
-        alert(
+        setAlertMessage(
           'Password should contain at least one uppercase letter',
           'passwordcontainer',
         )
       } else if (!Password.match(/[a-z]+/)) {
-        alert(
+        setAlertMessage(
           'Password should contain at least one lowercase letter',
           'passwordcontainer',
         )
       } else if (!Password.match(/[0-9]+/)) {
-        alert(
+        setAlertMessage(
           'Password should contain at least one number',
           'passwordcontainer',
         )
       } else if (Password != Check) {
-        alert("Passwords don't match", 'repasswordcontainer')
+        setAlertMessage("Passwords don't match", 'repasswordcontainer')
       } else {
-        alertClear()
+        setAlertMessage('')
+        console.log('formdata', formdata)
         window.alert(
           formdata['Email'] +
             '\n' +
@@ -162,9 +148,11 @@ function page1() {
     }
   }
 
-  if (step === 1) {
-    return (
-      <main className="h-screen flex justify-center items-center bg-gradient-to-br from-blue-500 to-purple-600">
+  // Add similar logic for 'OTP' and 'Password' stages
+
+  return (
+    <main className="h-screen flex justify-center items-center bg-gradient-to-br from-blue-500 to-purple-600">
+      {step === 1 && (
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full">
           <div className="font-poppins text-center font-[700] text-[1.75rem] md:text-[2.0rem] xl:text-[2.2rem] text-blue-500">
             Reset Password
@@ -174,6 +162,7 @@ function page1() {
           </div>
           <form
             id="1"
+            ref={formRef}
             className="flex flex-col items-center justify-center"
             onSubmit={(e) => check(e, 'User', true)}
           >
@@ -199,6 +188,7 @@ function page1() {
                 required
               />
             </div>
+            {alertMessage ? <p>{alertMessage}</p> : null}
             <button
               type="submit"
               className="bg-blue-500 text-white rounded-[8px] px-[14px] py-[4px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600 mb-[15px] sm:mb-[20px] lg:mb-[25px]"
@@ -216,11 +206,8 @@ function page1() {
             </div>
           </form>
         </div>
-      </main>
-    )
-  } else if (step === 2) {
-    return (
-      <main className="h-screen flex justify-center items-center bg-gradient-to-br from-blue-500 to-purple-600">
+      )}
+      {step === 2 && (
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full">
           <div className="font-poppins text-center font-[700] text-[1.75rem] md:text-[2.0rem] xl:text-[2.2rem] text-blue-500">
             Reset Password
@@ -230,12 +217,13 @@ function page1() {
           </div>
           <form
             id="2"
-            className="flex flex-col items-center justify-center"
+            ref={formRef}
+            className="flex flex-col items-center justify-center gap-8"
             onSubmit={(e) => check(e, 'OTP', true)}
           >
             <div
               id="otpcontainer"
-              className="mb-[30px] md:mb-[40px] xl:mb-[50px] flex flex-col items-center justify-center "
+              className=" flex flex-col items-center w-full justify-center "
             >
               <input
                 type="text"
@@ -247,7 +235,10 @@ function page1() {
                 required
               />
             </div>
-            <div className="w-[20em] md:w-[27em] xl:w-[35em] mb-[15px] sm:mb-[20px] lg:mb-[25px] mx-auto flex justify-between">
+            {alertMessage ? (
+              <p className="text-center">{alertMessage}</p>
+            ) : null}
+            <div className="w-full grid grid-cols-2 gap-3 mx-auto ">
               <button
                 type="button"
                 className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600"
@@ -257,7 +248,7 @@ function page1() {
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600 ml-auto"
+                className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600 "
               >
                 Continue
               </button>
@@ -270,11 +261,8 @@ function page1() {
             </div>
           </form>
         </div>
-      </main>
-    )
-  } else if (step === 3) {
-    return (
-      <main className="h-screen flex justify-center items-center bg-gradient-to-br from-blue-500 to-purple-600">
+      )}
+      {step === 3 && (
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full">
           <div className="font-poppins text-center font-[700] text-[1.75rem] md:text-[2.0rem] xl:text-[2.2rem] text-blue-500">
             Reset Password
@@ -283,15 +271,16 @@ function page1() {
             New Password
           </div>
           <form
-            id="2"
-            className="flex flex-col items-center justify-center"
+            id="3"
+            ref={formRef}
+            className="flex flex-col items-center justify-center gap-8"
             onSubmit={(e) => check(e, 'Password', true)}
           >
             <div
               id="passwordcontainer"
-              className="mb-[30px] md:mb-[40px] xl:mb-[50px] flex flex-col items-center justify-center "
+              className="w-full flex flex-col items-center justify-center "
             >
-              <div className="flex flex-col items-center justify-center relative">
+              <div className="flex flex-col items-center justify-center w-full relative">
                 <input
                   type={`${censorPswd ? 'password' : 'text'}`}
                   name="Password"
@@ -322,9 +311,9 @@ function page1() {
             </div>
             <div
               id="repasswordcontainer"
-              className="mb-[30px] md:mb-[40px] xl:mb-[50px] flex flex-col items-center justify-center "
+              className="w-full flex flex-col items-center justify-center "
             >
-              <div className="flex flex-col items-center justify-center relative">
+              <div className="flex w-full flex-col items-center justify-center relative">
                 <input
                   type={`${censorPswdCheck ? 'password' : 'text'}`}
                   name="RePassword"
@@ -353,17 +342,20 @@ function page1() {
                 </div>
               </div>
             </div>
-            <div className="w-[20em] md:w-[27em] xl:w-[35em] mb-[15px] sm:mb-[20px] lg:mb-[25px] mx-auto flex justify-between">
+            {alertMessage ? (
+              <p className="text-center">{alertMessage}</p>
+            ) : null}
+            <div className="w-full grid grid-cols-2 gap-3 mx-auto ">
               <button
                 type="button"
                 className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600"
-                onClick={(e) => check(e, 'Password', false)}
+                onClick={(e) => check(e, 'OTP', false)}
               >
                 Back
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600 ml-auto"
+                className="bg-blue-500 text-white rounded-[8px] px-[16px] py-[5px] md:px-[18px] md:py-[6px] xl:px-6 xl:py-2 border border-blue-500 hover:bg-blue-600 "
               >
                 Continue
               </button>
@@ -379,9 +371,9 @@ function page1() {
             </div>
           </form>
         </div>
-      </main>
-    )
-  }
+      )}
+    </main>
+  )
 }
 
-export default page1
+export default Page1
