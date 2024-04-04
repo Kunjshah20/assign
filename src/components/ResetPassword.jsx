@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { HiEye, HiEyeOff } from 'react-icons/hi'
 
-function Page1() {
+export default function ResetPassword() {
   const [step, setStep] = useState(1)
   const [censorPswd, setCensorPswd] = useState(true)
   const [censorPswdCheck, setCensorPswdCheck] = useState(true)
@@ -375,5 +375,3 @@ function Page1() {
     </main>
   )
 }
-
-export default Page1
